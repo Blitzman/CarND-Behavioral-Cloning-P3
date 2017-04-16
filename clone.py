@@ -4,15 +4,21 @@ import numpy as np
 
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Lambda
+from keras.layers import Activation
 from keras.layers import Convolution2D
 from keras.layers import MaxPooling2D
 from keras.layers import Cropping2D
+from keras.layers import Dropout
+from keras.layers.advanced_activations import ELU
+from keras.regularizers import l2, activity_l2
+from keras.callbacks import EarlyStopping
+from keras.optimizers import Adam
 
 from keras.models import Model
 import matplotlib.pyplot as plt
 
 lines = []
-with open('recorded_data/fast_1lap/driving_log.csv') as csvfile:
+with open('data/driving_log.csv') as csvfile:
     reader = csv.reader(csvfile)
     for line in reader:
         lines.append(line)
@@ -23,7 +29,7 @@ measurements = []
 for line in lines:
     source_path = line[0]
     filename = source_path.split('/')[-1]
-    current_path = 'recorded_data/fast_1lap/IMG/' + filename
+    current_path = 'data/IMG/' + filename
     image = cv2.imread(current_path)
     images.append(image)
 
@@ -44,19 +50,32 @@ y_train = np.array(augmented_measurements)
 model = Sequential()
 model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160, 320, 3)))
 model.add(Cropping2D(cropping=((70, 25), (0,0))))
-model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation="relu"))
-model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation="relu"))
-model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation="relu"))
-model.add(Convolution2D(64, 3, 3, activation="relu"))
-model.add(Convolution2D(64, 3, 3, activation="relu"))
+model.add(Convolution2D(24, 5, 5, subsample=(2, 2)))
+model.add(Activation('relu'))
+model.add(Convolution2D(36, 5, 5, subsample=(2, 2)))
+model.add(Activation('relu'))
+model.add(Convolution2D(48, 5, 5, subsample=(2, 2)))
+model.add(Activation('relu'))
+model.add(Convolution2D(64, 3, 3))
+model.add(Activation('relu'))
+model.add(Convolution2D(64, 3, 3))
+model.add(Activation('relu'))
 model.add(Flatten())
 model.add(Dense(100))
+model.add(Dropout(0.5))
+model.add(Activation('relu'))
 model.add(Dense(50))
+model.add(Dropout(0.5))
+model.add(Activation('relu'))
 model.add(Dense(10))
+model.add(Dropout(0.5))
+model.add(Activation('relu'))
 model.add(Dense(1))
 
-model.compile(loss='mse', optimizer='adam')
-history_object = model.fit(X_train, y_train, validation_split=0.2, shuffle=True, nb_epoch=5)
+model.compile(loss='mse', optimizer=Adam(lr=1e-4))
+
+early_stopping = EarlyStopping(monitor='val_loss', patience=0, verbose=0, mode='auto')
+history_object = model.fit(X_train, y_train, validation_split=0.2, shuffle=True, nb_epoch=32, callbacks=[early_stopping])
 
 print(history_object.history.keys())
 plt.plot(history_object.history['loss'])
