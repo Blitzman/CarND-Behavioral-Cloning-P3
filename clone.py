@@ -17,43 +17,49 @@ from keras.optimizers import Adam
 from keras.models import Model
 import matplotlib.pyplot as plt
 
-csv_path = 'data/'
-img_path = 'data/IMG/'
-
-lines = []
-with open(csv_path + 'driving_log.csv') as csvfile:
-    reader = csv.reader(csvfile)
-    for line in reader:
-        lines.append(line)
-    lines = lines[1:]
+csv_paths = ['data/',
+        'recorded_data/recovery1/',
+        'recorded_data/c_recovery1/']
+img_paths = ['data/IMG/',
+        'recorded_data/recovery1/IMG/',
+        'recorded_data/c_recovery1/IMG/']
 
 images = []
 steerings = []
-for line in lines:
 
-    source_path_center = line[0]
-    filename_center = source_path_center.split('/')[-1]
-    source_path_left = line[1]
-    filename_left = source_path_left.split('/')[-1]
-    source_path_right = line[2]
-    filename_right = source_path_right.split('/')[-1]
-    image_center = cv2.imread(img_path + filename_center)
-    image_left = cv2.imread(img_path + filename_left)
-    image_right = cv2.imread(img_path + filename_right)
-    images.append(image_center)
-    images.append(image_left)
-    images.append(image_right)
+for csv_path, img_path in zip(csv_paths, img_paths):
+    lines = []
+    with open(csv_path + 'driving_log.csv') as csvfile:
+        reader = csv.reader(csvfile)
+        for line in reader:
+            lines.append(line)
+        lines = lines[1:]
 
-    correction = 0.25
-    steering_center = float(line[3])
-    steering_left = steering_center + correction
-    steering_right = steering_center - correction
-    steerings.append(steering_center)
-    steerings.append(steering_left)
-    steerings.append(steering_right)
+    for line in lines:
+        source_path_center = line[0]
+        filename_center = source_path_center.split('/')[-1]
+        source_path_left = line[1]
+        filename_left = source_path_left.split('/')[-1]
+        source_path_right = line[2]
+        filename_right = source_path_right.split('/')[-1]
+        image_center = cv2.imread(img_path + filename_center)
+        image_left = cv2.imread(img_path + filename_left)
+        image_right = cv2.imread(img_path + filename_right)
+        images.append(image_center)
+        images.append(image_left)
+        images.append(image_right)
+
+        correction = 0.25
+        steering_center = float(line[3])
+        steering_left = steering_center + correction
+        steering_right = steering_center - correction
+        steerings.append(steering_center)
+        steerings.append(steering_left)
+        steerings.append(steering_right)
 
 augmented_images = []
 augmented_steerings = []
+
 for image, steering in zip(images, steerings):
     augmented_images.append(image)
     augmented_steerings.append(steering)
