@@ -17,6 +17,10 @@ from keras.optimizers import Adam
 from keras.models import Model
 import matplotlib.pyplot as plt
 
+def preprocess_image(img):
+    preprocessed_img = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
+    return preprocessed_img
+
 csv_paths = ['data/',
         'recorded_data/recovery1/',
         'recorded_data/c_recovery1/']
@@ -28,6 +32,7 @@ images = []
 steerings = []
 
 for csv_path, img_path in zip(csv_paths, img_paths):
+    print('Processing CSV: ' + csv_path)
     lines = []
     with open(csv_path + 'driving_log.csv') as csvfile:
         reader = csv.reader(csvfile)
@@ -45,6 +50,9 @@ for csv_path, img_path in zip(csv_paths, img_paths):
         image_center = cv2.imread(img_path + filename_center)
         image_left = cv2.imread(img_path + filename_left)
         image_right = cv2.imread(img_path + filename_right)
+        image_center = preprocess_image(image_center)
+        image_left = preprocess_image(image_left)
+        image_right = preprocess_image(image_right)
         images.append(image_center)
         images.append(image_left)
         images.append(image_right)
@@ -70,7 +78,7 @@ X_train = np.array(augmented_images)
 y_train = np.array(augmented_steerings)
 
 model = Sequential()
-model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160, 320, 3)))
+model.add(Lambda(lambda x: (x / 127.5) - 1.0, input_shape=(160, 320, 3)))
 model.add(Cropping2D(cropping=((70, 25), (0,0))))
 model.add(Convolution2D(24, 5, 5, subsample=(2, 2)))
 model.add(Activation('relu'))
