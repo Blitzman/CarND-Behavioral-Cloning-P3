@@ -17,35 +17,51 @@ from keras.optimizers import Adam
 from keras.models import Model
 import matplotlib.pyplot as plt
 
+csv_path = 'data/'
+img_path = 'data/IMG/'
+
 lines = []
-with open('data/driving_log.csv') as csvfile:
+with open(csv_path + 'driving_log.csv') as csvfile:
     reader = csv.reader(csvfile)
     for line in reader:
         lines.append(line)
     lines = lines[1:]
 
 images = []
-measurements = []
+steerings = []
 for line in lines:
-    source_path = line[0]
-    filename = source_path.split('/')[-1]
-    current_path = 'data/IMG/' + filename
-    image = cv2.imread(current_path)
-    images.append(image)
 
-    measurement = float(line[3])
-    measurements.append(measurement)
+    source_path_center = line[0]
+    filename_center = source_path_center.split('/')[-1]
+    source_path_left = line[1]
+    filename_left = source_path_left.split('/')[-1]
+    source_path_right = line[2]
+    filename_right = source_path_right.split('/')[-1]
+    image_center = cv2.imread(img_path + filename_center)
+    image_left = cv2.imread(img_path + filename_left)
+    image_right = cv2.imread(img_path + filename_right)
+    images.append(image_center)
+    images.append(image_left)
+    images.append(image_right)
+
+    correction = 0.25
+    steering_center = float(line[3])
+    steering_left = steering_center + correction
+    steering_right = steering_center - correction
+    steerings.append(steering_center)
+    steerings.append(steering_left)
+    steerings.append(steering_right)
 
 augmented_images = []
-augmented_measurements = []
-for image, measurement in zip(images, measurements):
+augmented_steerings = []
+for image, steering in zip(images, steerings):
     augmented_images.append(image)
-    augmented_measurements.append(measurement)
+    augmented_steerings.append(steering)
     augmented_images.append(cv2.flip(image, 1))
-    augmented_measurements.append(measurement * -1.0)
+    augmented_steerings.append(steering * -1.0)
 
 X_train = np.array(augmented_images)
-y_train = np.array(augmented_measurements)
+y_train = np.array(augmented_steerings)
 
 model = Sequential()
 model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160, 320, 3)))
