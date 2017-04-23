@@ -12,8 +12,13 @@ The goals of this project are the following:
 
 [//]: # (Image References)
 
+[conflict1]: ./img/conflict1.jpg "Conflict 1"
+[conflict2]: ./img/conflict2.jpg "Conflict 2"
+[conflict3]: ./img/conflict3.jpg "Conflict 3"
+[conflict4]: ./img/conflict4.jpg "Conflict 4"
 [datasethist1]: ./img/dataset_histogram.png "Dataset Histogram"
 [datasethist2]: ./img/dataset_histogram2.png "Dataset Histogram Balanced"
+[mse]: ./img/mse.png "MSE"
 [image1]: ./examples/placeholder.png "Model Visualization"
 [image2]: ./examples/placeholder.png "Grayscaling"
 [image3]: ./examples/placeholder_small.png "Recovery Image"
@@ -30,7 +35,9 @@ The goals of this project are the following:
 The project includes the following files:
 * model.py containing the script to create and train the model
 * drive.py for driving the car in autonomous mode
-* model.h5 containing a trained convolution neural network 
+* model.h5 containing a trained convolution neural network
+* track1.mp4 the video of the car driving autonomously on the first track
+* track2.mp4 the video of the car driving autonomously on the challenge track
 * This README.md summarizing the results and documenting the project
 
 #### 2. Submission includes functional code
@@ -60,6 +67,8 @@ As we have already stated, the model contains three dropout layers: one after ea
 
 In addition, we set up early stopping using the corresponding callback in Keras. By doing that we monitor both training and validation losses and we stop training if the validation loss increases instead of decreasing.
 
+Furthermore, L2 regularization was applied to each convolutional and dense layer using a regularizing factor of 0.001.
+
 The model was trained and validated on different data sets to ensure that the model was not overfitting, we used Keras to setup the validation partition. The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track and meet the requested specifications, e.g., not driving outside the road or the shoulders.
 
 #### 3. Model parameter tuning
@@ -88,16 +97,31 @@ The overall strategy for deriving a model architecture was to incrementally buil
 
 The first step was to use a simple CNN such as LeNet-5. We thought that, initially, this model might be appropriate and generate decent results since we used it successfully to perform traffic sign recognition in the previous project. However, it soon became obvious that the model was too simple for the problem at hand and really prone to underfitting. The car was not able to get past the first curve in the test track.
 
+After that, we introduced a more complex network such as the one from NVIDIA proposed in the lessons. This network performed reasonably well and the car was able to get past the first curve and properly drive straight. Nevertheless, it still failed when getting to the bridge of the first track.
 
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
+We switched color spaces from RGB to YUV, normalized inputs, and cropped the image to remove the hood of the car and some horizon which contained information which was not important for driving autonomously. After training the model (with the data provided by Udacity plus recovery laps recorded by ourselves), it was able to complete the whole track without getting off the road.
 
-To combat the overfitting, I modified the model so that ...
+Providing that it was able to drive on the first track (being trained only using that track's data) we tried to run it on the challenge track without success. It was not even able to get to the first curve. Obviously, we introduced the basic training data for that track (center lane driving in both directions plus some recovery data). After training the model, it was able to drive autonomously on most of the second track but it still failed at some conflicting points:
 
-Then I ... 
+![Conflict1][conflict1]
+![Conflict2][conflict2]
+![Conflict3][conflict3]
+![Conflict4][conflict4]
 
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I ....
+What is more, the car stopped driving properly on the first track. We noticed that we needed to add some kind of regularization mechanisms to avoid it from overfitting certain parts of the tracks so we added dropout layers and L2 regularization for each convolutional and dense layer. We also introduced ELU activations which improved greatly the results. With all those adjustments the car was able to drive properly on the first track again but it still failed on the conflicting points of the challenge track.
 
-At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
+We solved those problems by taking two approaches. First, we introduced more training data by driving the car slowly on those conflicting points and inducing recovery situations. Second, a visualization of the dataset made obvious that some steering angles were more dominant than others, so we needed some balancing in order not to bias the model towards driving straight. More details about the dataset generation, augmentation, and balancing process are provided in the next section.
+
+At the end of the process, the model exhibited a proper learning behavior (as shown in the MSE plot) and the vehicle was able to drive autonomously around the track without leaving the road as shown in track1.mp4 and track2.mp4.
+
+![MSE][mse]
+
+In addition, we captured a couple of videos from the simulator for each track (click to watch):
+
+[![Track1](http://img.youtube.com/vi/ePD9udGOWWA/0.jpg)](http://www.youtube.com/watch?v=ePD9udGOWWA "Self-Driving Car Nanodegree - P3: Behavioral Cloning - Track1")
+
+[![Track2](http://img.youtube.com/vi/4WAxWsDqyrw/0.jpg)](http://www.youtube.com/watch?v=4WAxWsDqyrw "Self-Driving Car Nanodegree - P3: Behavioral Cloning - Track2")
+
 
 #### 2. Final Model Architecture
 
@@ -107,7 +131,7 @@ The final model architecture (defined in model.py lines 226 to 249) consisted of
 |:---------------------:|:-------------------------------------------------------------:|:--------------|
 | Input									| 160x320x3 YUV image																						| 160x320x3			|
 | Lambda								| Normalization (Input / 127.5 + 1.0)														|	160x320x3			|
-| Cropping2D						| Crop 50 pixels from top																				|	90x320x3			|
+| Cropping2D						| Crop 50 pixels from top and 20 from bottom										|	90x320x3			|
 | Convolution2D					| 5x5 kernel, 2x2 subsample, VALID padding, L2 reg (0.001)			| 43x158x24			|
 | ELU										| Activation																										| 43x158x24			|
 | Convolution2D					| 5x5 kernel, 2x2 subsample, VALID padding, L2 reg (0.001)			| 20x77x36			|
