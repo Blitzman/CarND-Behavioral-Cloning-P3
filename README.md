@@ -19,6 +19,12 @@ The goals of this project are the following:
 [datasethist1]: ./img/dataset_histogram.png "Dataset Histogram"
 [datasethist2]: ./img/dataset_histogram2.png "Dataset Histogram Balanced"
 [mse]: ./img/mse.png "MSE"
+[dataset1]: ./img/dataset1.jpg "Dataset 1"
+[dataset2]: ./img/dataset2.jpg "Dataset 2"
+[dataset3]: ./img/dataset3.jpg "Dataset 3"
+[dataset4]: ./img/dataset4.jpg "Dataset 4"
+[dataset5]: ./img/dataset5.jpg "Dataset 5"
+[dataset6]: ./img/dataset6.jpg "Dataset 6"
 [image1]: ./examples/placeholder.png "Model Visualization"
 [image2]: ./examples/placeholder.png "Grayscaling"
 [image3]: ./examples/placeholder_small.png "Recovery Image"
@@ -175,3 +181,10 @@ It was obvious that the dataset was unbalanced towards straight driving so we de
 ![Dataset Histogram Balanced][datasethist2]
 
 Finally, we used a train/test split of 80/20, and two generators to provide shuffled and randomly augmented training and validation batches respectively to the model fitting method.
+
+![Dataset 1][dataset1]
+![Dataset 1][dataset2]
+![Dataset 1][dataset3]
+![Dataset 1][dataset4]
+![Dataset 1][dataset5]
+![Dataset 1][dataset6]
