@@ -49,7 +49,7 @@ class SimplePIController:
 
 
 controller = SimplePIController(0.1, 0.002)
-set_speed = 12
+set_speed = 16
 controller.set_desired(set_speed)
 
 

@@ -122,6 +122,10 @@ csv_paths = ['data/',
         'recorded_data/t2_c_center1/',
         'recorded_data/t2_recovery1/',
         'recorded_data/t2_recoveryend1/',
+        'recorded_data/t2_recoveryend2/',
+        'recorded_data/t2_recoveryend3/',
+        'recorded_data/t2_recoveryend4/',
+        'recorded_data/t2_recoveryend5/',
         'recorded_data/t2_recoveryturn1/',
         'recorded_data/t2_c_recovery1/']
 img_paths = ['data/IMG/',
@@ -136,6 +140,10 @@ img_paths = ['data/IMG/',
         'recorded_data/t2_c_center1/IMG/',
         'recorded_data/t2_recovery1/IMG/',
         'recorded_data/t2_recoveryend1/IMG/',
+        'recorded_data/t2_recoveryend2/IMG/',
+        'recorded_data/t2_recoveryend3/IMG/',
+        'recorded_data/t2_recoveryend4/IMG/',
+        'recorded_data/t2_recoveryend5/IMG/',
         'recorded_data/t2_recoveryturn1/IMG/',
         'recorded_data/t2_c_recovery1/IMG/']
 
@@ -177,7 +185,7 @@ plt.plot((np.min(steerings), np.max(steerings)), (avg_samples_per_bin, avg_sampl
 plt.show()
 
 keep_probs = []
-target = avg_samples_per_bin * .5
+target = avg_samples_per_bin * .75
 for i in range(num_bins):
     if hist[i] < target:
         keep_probs.append(1.)
@@ -192,7 +200,7 @@ for i in range(len(steerings)):
             if np.random.rand() > keep_probs[j]:
                 remove_list.append(i)
 
-#samples = np.delete(samples, remove_list, axis=0)
+samples = np.delete(samples, remove_list, axis=0)
 steerings = np.delete(steerings, remove_list, axis=0)
 
 hist, bins = np.histogram(steerings, num_bins)
@@ -230,15 +238,15 @@ model.add(Convolution2D(64, 3, 3, W_regularizer=l2(0.001)))
 model.add(ELU())
 model.add(Flatten())
 model.add(Dense(100, W_regularizer=l2(0.001)))
-#model.add(Dropout(0.5))
+model.add(Dropout(0.5))
 #model.add(Activation('relu'))
 model.add(ELU())
 model.add(Dense(50, W_regularizer=l2(0.001)))
-#model.add(Dropout(0.5))
+model.add(Dropout(0.5))
 #model.add(Activation('relu'))
 model.add(ELU())
 model.add(Dense(10, W_regularizer=l2(0.001)))
-#model.add(Dropout(0.5))
+model.add(Dropout(0.5))
 #model.add(Activation('relu'))
 model.add(ELU())
 model.add(Dense(1))
@@ -247,7 +255,7 @@ model.compile(loss='mse', optimizer=Adam(lr=1e-3))
 
 model.summary()
 
-early_stopping = EarlyStopping(monitor='val_loss', patience=0, verbose=0, mode='auto')
+early_stopping = EarlyStopping(monitor='val_loss', patience=4, verbose=0, mode='auto')
 #history_object = model.fit(X_train, y_train, validation_split=0.05, shuffle=True, nb_epoch=32, callbacks=[early_stopping])
 
 history_object = model.fit_generator(train_generator, samples_per_epoch=len(train_samples),
