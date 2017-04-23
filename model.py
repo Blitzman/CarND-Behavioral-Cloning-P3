@@ -230,7 +230,7 @@ steerings = np.delete(steerings, remove_list, axis=0)
 
 hist, bins = np.histogram(steerings, num_bins)
 plt.bar(center, hist, align='center', width=width)
-plt.plot((np.min(steerings), np.max(steerings)), (avg_samples_per_bin, avg_samples_per_bin), 'k-')
+plt.plot((np.min(steerings), np.max(steerings)), (mean_samples_per_bin, mean_samples_per_bin), 'k-')
 plt.show()
 
 ###################################################################################################
