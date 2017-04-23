@@ -110,42 +110,42 @@ def generator(samples, batch_size=64, augment=False):
 
 ## Specify list of CSV files to read with their corresponding image paths
 
-csv_paths = ['data/',
-        'recorded_data/t1_center1/',
-        'recorded_data/t1_recovery1/',
-        'recorded_data/t1_c_recovery1/',
-        'recorded_data/t2_smoothturn1/',
-        'recorded_data/t2_center1/',
-        'recorded_data/t2_centerslow1/',
-        'recorded_data/t2_center2/',
-        'recorded_data/t2_center3/',
-        'recorded_data/t2_c_center1/',
-        'recorded_data/t2_recovery1/',
-        'recorded_data/t2_recoveryend1/',
-        'recorded_data/t2_recoveryend2/',
-        'recorded_data/t2_recoveryend3/',
-        'recorded_data/t2_recoveryend4/',
-        'recorded_data/t2_recoveryend5/',
-        'recorded_data/t2_recoveryturn1/',
-        'recorded_data/t2_c_recovery1/']
-img_paths = ['data/IMG/',
-        'recorded_data/t1_center1/IMG/',
-        'recorded_data/t1_recovery1/IMG/',
-        'recorded_data/t1_c_recovery1/IMG/',
-        'recorded_data/t2_smoothturn1/IMG/',
-        'recorded_data/t2_center1/IMG/',
-        'recorded_data/t2_centerslow1/IMG/',
-        'recorded_data/t2_center2/IMG/',
-        'recorded_data/t2_center3/IMG/',
-        'recorded_data/t2_c_center1/IMG/',
-        'recorded_data/t2_recovery1/IMG/',
-        'recorded_data/t2_recoveryend1/IMG/',
-        'recorded_data/t2_recoveryend2/IMG/',
-        'recorded_data/t2_recoveryend3/IMG/',
-        'recorded_data/t2_recoveryend4/IMG/',
-        'recorded_data/t2_recoveryend5/IMG/',
-        'recorded_data/t2_recoveryturn1/IMG/',
-        'recorded_data/t2_c_recovery1/IMG/']
+csv_paths = ['data/original/',
+        'data/t1_center1/',
+        'data/t1_recovery1/',
+        'data/t1_c_recovery1/',
+        'data/t2_smoothturn1/',
+        'data/t2_center1/',
+        'data/t2_centerslow1/',
+        'data/t2_center2/',
+        'data/t2_center3/',
+        'data/t2_c_center1/',
+        'data/t2_recovery1/',
+        'data/t2_recoveryend1/',
+        'data/t2_recoveryend2/',
+        'data/t2_recoveryend3/',
+        'data/t2_recoveryend4/',
+        'data/t2_recoveryend5/',
+        'data/t2_recoveryturn1/',
+        'data/t2_c_recovery1/']
+img_paths = ['data/original/IMG/',
+        'data/t1_center1/IMG/',
+        'data/t1_recovery1/IMG/',
+        'data/t1_c_recovery1/IMG/',
+        'data/t2_smoothturn1/IMG/',
+        'data/t2_center1/IMG/',
+        'data/t2_centerslow1/IMG/',
+        'data/t2_center2/IMG/',
+        'data/t2_center3/IMG/',
+        'data/t2_c_center1/IMG/',
+        'data/t2_recovery1/IMG/',
+        'data/t2_recoveryend1/IMG/',
+        'data/t2_recoveryend2/IMG/',
+        'data/t2_recoveryend3/IMG/',
+        'data/t2_recoveryend4/IMG/',
+        'data/t2_recoveryend5/IMG/',
+        'data/t2_recoveryturn1/IMG/',
+        'data/t2_c_recovery1/IMG/']
 
 ## Generate list of samples including image paths
 
@@ -222,32 +222,24 @@ model = Sequential()
 model.add(Lambda(lambda x: (x / 127.5) - 1.0, input_shape=(160, 320, 3)))
 model.add(Cropping2D(cropping=((50, 20), (0,0))))
 model.add(Convolution2D(24, 5, 5, W_regularizer=l2(0.001), subsample=(2, 2)))
-#model.add(Activation('relu'))
 model.add(ELU())
 model.add(Convolution2D(36, 5, 5, W_regularizer=l2(0.001), subsample=(2, 2)))
-#model.add(Activation('relu'))
 model.add(ELU())
 model.add(Convolution2D(48, 5, 5, W_regularizer=l2(0.001), subsample=(2, 2)))
-#model.add(Activation('relu'))
 model.add(ELU())
 model.add(Convolution2D(64, 3, 3, W_regularizer=l2(0.001)))
-#model.add(Activation('relu'))
 model.add(ELU())
 model.add(Convolution2D(64, 3, 3, W_regularizer=l2(0.001)))
-#model.add(Activation('relu'))
 model.add(ELU())
 model.add(Flatten())
 model.add(Dense(100, W_regularizer=l2(0.001)))
 model.add(Dropout(0.5))
-#model.add(Activation('relu'))
 model.add(ELU())
 model.add(Dense(50, W_regularizer=l2(0.001)))
 model.add(Dropout(0.5))
-#model.add(Activation('relu'))
 model.add(ELU())
 model.add(Dense(10, W_regularizer=l2(0.001)))
 model.add(Dropout(0.5))
-#model.add(Activation('relu'))
 model.add(ELU())
 model.add(Dense(1))
 
@@ -256,7 +248,6 @@ model.compile(loss='mse', optimizer=Adam(lr=1e-3))
 model.summary()
 
 early_stopping = EarlyStopping(monitor='val_loss', patience=4, verbose=0, mode='auto')
-#history_object = model.fit(X_train, y_train, validation_split=0.05, shuffle=True, nb_epoch=32, callbacks=[early_stopping])
 
 history_object = model.fit_generator(train_generator, samples_per_epoch=len(train_samples),
         validation_data=validation_generator, nb_val_samples=len(validation_samples), nb_epoch=128, callbacks=[early_stopping])
