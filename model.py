@@ -5,6 +5,8 @@ import numpy as np
 import random
 import math
 
+import seaborn as sbs
+
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Lambda
 from keras.layers import Activation
@@ -108,7 +110,9 @@ def generator(samples, batch_size=64, augment=False):
             y = np.array(batch_steerings)
             yield sklearn.utils.shuffle(X, y)
 
+###################################################################################################
 ## Specify list of CSV files to read with their corresponding image paths
+###################################################################################################
 
 csv_paths = ['data/original/',
         'data/t1_center1/',
@@ -147,7 +151,12 @@ img_paths = ['data/original/IMG/',
         'data/t2_recoveryturn1/IMG/',
         'data/t2_c_recovery1/IMG/']
 
-## Generate list of samples including image paths
+
+###################################################################################################
+## Generate list of samples including image paths. A sample is a line from the CSV file with the
+## appropriate paths for each one of the images (center/left/right).
+## Also get every steering angle from each sample for further processing.
+###################################################################################################
 
 samples = []
 steerings = []
@@ -173,40 +182,60 @@ for csv_path, img_path in zip(csv_paths, img_paths):
         samples.append(sample)
         steerings.append(float(sample[3]))
 
-## Generate training and testing sets with generators
+###################################################################################################
+## Create steering angle histogram from the dataset
+###################################################################################################
+
 steerings = np.array(steerings)
 num_bins = 8
-avg_samples_per_bin = len(steerings)/num_bins
+mean_samples_per_bin = len(steerings)/num_bins
 hist, bins = np.histogram(steerings, num_bins)
 width = 0.7 * (bins[1] - bins[0])
 center = (bins[:-1] + bins[1:]) / 2
 plt.bar(center, hist, align='center', width=width)
-plt.plot((np.min(steerings), np.max(steerings)), (avg_samples_per_bin, avg_samples_per_bin), 'k-')
+plt.plot((np.min(steerings), np.max(steerings)), (mean_samples_per_bin, mean_samples_per_bin), 'k-')
+plt.title('Dataset Histogram')
+plt.ylabel('Number of Samples')
+plt.xlabel('Steering Angle')
 plt.show()
 
-keep_probs = []
-target = avg_samples_per_bin * .75
+###################################################################################################
+## Balance dataset by dropping samples with dominant steering angles
+## Idea inspired by Jeremy Shannon
+###################################################################################################
+
+keep_probabilities = []
+target = mean_samples_per_bin * 0.75
+
 for i in range(num_bins):
     if hist[i] < target:
-        keep_probs.append(1.)
+        keep_probabilities.append(1.0)
     else:
-        keep_probs.append(1./(hist[i]/target))
+        keep_probabilities.append(1.0 / (hist[i]/target))
 
 remove_list = []
+
 for i in range(len(steerings)):
     for j in range(num_bins):
         if steerings[i] > bins[j] and steerings[i] <= bins[j+1]:
-            # delete from X and y with probability 1 - keep_probs[j]
-            if np.random.rand() > keep_probs[j]:
+            if np.random.rand() > keep_probabilities[j]:
                 remove_list.append(i)
 
 samples = np.delete(samples, remove_list, axis=0)
 steerings = np.delete(steerings, remove_list, axis=0)
 
+###################################################################################################
+## Create steering angle histogram from the balanced dataset
+###################################################################################################
+
 hist, bins = np.histogram(steerings, num_bins)
 plt.bar(center, hist, align='center', width=width)
 plt.plot((np.min(steerings), np.max(steerings)), (avg_samples_per_bin, avg_samples_per_bin), 'k-')
 plt.show()
+
+###################################################################################################
+## Generate training and testing sets with their corresponding generators
+###################################################################################################
 
 train_samples, validation_samples = train_test_split(samples, test_size=0.2)
 
@@ -216,7 +245,9 @@ print('Validating with ' + str(len(validation_samples)) + ' samples...')
 train_generator = generator(train_samples, batch_size=64, augment=True)
 validation_generator = generator(validation_samples, batch_size=64, augment=False)
 
+###################################################################################################
 ## Model definition
+###################################################################################################
 
 model = Sequential()
 model.add(Lambda(lambda x: (x / 127.5) - 1.0, input_shape=(160, 320, 3)))
@@ -244,13 +275,22 @@ model.add(ELU())
 model.add(Dense(1))
 
 model.compile(loss='mse', optimizer=Adam(lr=1e-3))
-
 model.summary()
+
+###################################################################################################
+## Callback definitions and model fitting
+###################################################################################################
 
 early_stopping = EarlyStopping(monitor='val_loss', patience=4, verbose=0, mode='auto')
 
 history_object = model.fit_generator(train_generator, samples_per_epoch=len(train_samples),
         validation_data=validation_generator, nb_val_samples=len(validation_samples), nb_epoch=128, callbacks=[early_stopping])
+
+model.save('model.h5')
+
+###################################################################################################
+## Model history plot
+###################################################################################################
 
 print(history_object.history.keys())
 plt.plot(history_object.history['loss'])
@@ -260,7 +300,5 @@ plt.ylabel('mean squared error loss')
 plt.xlabel('epoch')
 plt.legend(['training set', 'validation set'], loc='upper right')
 plt.show()
-
-model.save('model.h5')
 
 exit()
