@@ -12,6 +12,8 @@ The goals of this project are the following:
 
 [//]: # (Image References)
 
+[datasethist1]: ./img/dataset_histogram.png "Dataset Histogram"
+[datasethist2]: ./img/dataset_histogram2.png "Dataset Histogram Balanced"
 [image1]: ./examples/placeholder.png "Model Visualization"
 [image2]: ./examples/placeholder.png "Grayscaling"
 [image3]: ./examples/placeholder_small.png "Recovery Image"
@@ -82,9 +84,10 @@ For details about how we created the training set, see the next section.
 
 #### 1. Solution Design Approach
 
-The overall strategy for deriving a model architecture was to ...
+The overall strategy for deriving a model architecture was to incrementally build up over the knowledge acquired during the Nanodegree.
 
-My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
+The first step was to use a simple CNN such as LeNet-5. We thought that, initially, this model might be appropriate and generate decent results since we used it successfully to perform traffic sign recognition in the previous project. However, it soon became obvious that the model was too simple for the problem at hand and really prone to underfitting. The car was not able to get past the first curve in the test track.
+
 
 In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
 
@@ -98,29 +101,34 @@ At the end of the process, the vehicle is able to drive autonomously around the 
 
 #### 2. Final Model Architecture
 
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
+The final model architecture (defined in model.py lines 226 to 249) consisted of a variation of NVIDIA's CNN as showh in the following table:
 
-
-| Layer									|     Description																| 
-|:---------------------:|:---------------------------------------------:| 
-| Input									| 32x32x3 RGB image															| 
-| Convolution 5x5				| 1x1 stride, VALID padding, outputs 28x28x6		|
-| ReLU									| -																							|
-| Max pooling						| 2x2 stride,  outputs 14x14x6									|
-| Convolution 5x5				| 1x1 stride, VALID padding, outputs 10x10x16		|
-| Flatten								| 5x5x16 input, 400 output											|
-| Fully connected				| 1024 neurons																	|
-| ReLU									| -																							|
-| Dropout								| -																							|
-| Fully connected				| 1024 neurons																	|
-| ReLU									| -																							|
-| Dropout								| -																							|
-| Fully connected				| 43 neurons output (classes)										|
-| Softmax								| -																							|
-
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
-
-![alt text][image1]
+| Layer									|     Description																								| Output shape	|
+|:---------------------:|:-------------------------------------------------------------:|:--------------|
+| Input									| 160x320x3 YUV image																						| 160x320x3			|
+| Lambda								| Normalization (Input / 127.5 + 1.0)														|	160x320x3			|
+| Cropping2D						| Crop 50 pixels from top																				|	90x320x3			|
+| Convolution2D					| 5x5 kernel, 2x2 subsample, VALID padding, L2 reg (0.001)			| 43x158x24			|
+| ELU										| Activation																										| 43x158x24			|
+| Convolution2D					| 5x5 kernel, 2x2 subsample, VALID padding, L2 reg (0.001)			| 20x77x36			|
+| ELU										| Activation																										| 20x77x36			|
+| Convolution2D					| 5x5 kernel, 2x2 subsample, VALID padding, L2 reg (0.001)			| 8x37x48				|
+| ELU										| Activation																										| 8x37x48				|
+| Convolution2D					| 3x3 kernel, 2x2 subsample, VALID padding, L2 reg (0.001)			| 6x35x64				|
+| ELU										| Activation																										| 6x35x64				|
+| Convolution2D					| 3x3 kernel, 2x2 subsample, VALID padding, L2 reg (0.001)			| 4x33x64				|
+| ELU										| Activation																										| 4x33x64				|
+| Flatten								| -																															| 8448x1x1			|
+| Dense									| 100 neurons, L2 reg (0.001)																		|	100x1x1				|
+| Dropout								| Keep probability 0.5																					| 100x1x1				|
+| ELU										| Activation																										|	100x1x1				|
+| Dense									| 50 neurons, L2 reg (0.001)																		|	50x1x1				|
+| Dropout								| Keep probability 0.5																					| 50x1x1				|
+| ELU										| Activation																										|	50x1x1				|
+|	Dense									|	10 neurons, L2 reg (0.001)																		|	10x1x1				|
+| Dropout								| Keep probability 0.5																					|	10x1x1				|
+| ELU										| Activation																										| 10x1x1				|
+| Dense									| 1 neuron																											| 1x1x1					|
 
 #### 3. Creation of the Training Set & Training Process
 
@@ -143,9 +151,5 @@ To augment the data sat, I also flipped images and angles thinking that this wou
 
 Etc ....
 
-After the collection process, I had X number of data points. I then preprocessed this data by ...
-
-
-I finally randomly shuffled the data set and put Y% of the data into a validation set. 
-
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
+![Dataset Histogram][datasethist1]
+![Dataset Histogram Balanced][datasethist2]
