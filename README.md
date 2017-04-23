@@ -156,24 +156,22 @@ The final model architecture (defined in model.py lines 226 to 249) consisted of
 
 #### 3. Creation of the Training Set & Training Process
 
-To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
+The initial training set contained the data provided by Udacity (namely original). For the first track, we recorded an additional lap of center lane driving (t1_center1) and two recovery laps, each one of them in one direction (t1_recovery1 and t1_c_recovery1).
 
-![alt text][image2]
+For the second track, we recorded a set of center lane driving laps (t2_center1, t2_center2, and t2_center3) and one of them in the opposite direction (t2_c_center1). We also captured one lap driving slowly and doing smooth turns (t2_centerslow1). Then we captured a couple of whole-lap recoveries in both directions (t2_recovery1 and t2_c_recovery1).
 
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to .... These images show what a recovery looks like starting from ... :
+For the aforementioned conflicting points we recorded those specific parts either by doing recovery runs or smooth drives (t2_recoveryend1, t2_recoveryend2, t2_recoveryend3, t2_recoveryend4, t2_recoveryend5, t2_recoveryturn1, and t2_smoothturn1).
 
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
+All captured data is located in the data folder. We used the three camera images for training, applying a 0.25 correction factor to the ground truth steering to the left and right images accordingly.
 
-Then I repeated this process on track two in order to get more data points.
+To augment the dataset, we implemented a generator which randomly flipped images with a 1/3 probability.
 
-To augment the data sat, I also flipped images and angles thinking that this would ... For example, here is an image that has then been flipped:
-
-![alt text][image6]
-![alt text][image7]
-
-Etc ....
+Finally, we visualized the dataset (as inspired by Jeremy Shannon) to analyze the distribution of steering angles. We used a histogram visualization with eight bins.
 
 ![Dataset Histogram][datasethist1]
+
+It was obvious that the dataset was unbalanced towards straight driving so we decided to balance it by keeping more samples that belonged to sharp turns instead of straight driving. By doing that we came up with a better dataset which helped the model learn to perform sharp turns too and drive properly on the conflicting points which were underrepresented before.
+
 ![Dataset Histogram Balanced][datasethist2]
+
+Finally, we used a train/test split of 80/20, and two generators to provide shuffled and randomly augmented training and validation batches respectively to the model fitting method.
