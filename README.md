@@ -79,7 +79,7 @@ The model was trained and validated on different data sets to ensure that the mo
 
 #### 3. Model parameter tuning
 
-The model used an ADAM optimizer, so the learning rate was not tuned manually, although we chose an starting learning rate of 1e-4 which was determined empirically to work properly after a brief experimentation.
+The model used an ADAM optimizer, so the learning rate was not tuned manually, although we chose an starting learning rate of 1e-3 which was determined empirically to work properly after a brief experimentation.
 
 #### 4. Appropriate training data
 
