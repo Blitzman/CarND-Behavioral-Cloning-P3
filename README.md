@@ -130,7 +130,7 @@ The final model architecture (defined in model.py lines 226 to 249) consisted of
 | Layer									|     Description																								| Output shape	|
 |:---------------------:|:-------------------------------------------------------------:|:--------------|
 | Input									| 160x320x3 YUV image																						| 160x320x3			|
-| Lambda								| Normalization (Input / 127.5 + 1.0)														|	160x320x3			|
+| Lambda								| Normalization (Input / 127.5 - 1.0)														|	160x320x3			|
 | Cropping2D						| Crop 50 pixels from top and 20 from bottom										|	90x320x3			|
 | Convolution2D					| 5x5 kernel, 2x2 subsample, VALID padding, L2 reg (0.001)			| 43x158x24			|
 | ELU										| Activation																										| 43x158x24			|
